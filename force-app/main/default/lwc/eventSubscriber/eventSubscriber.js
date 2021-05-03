@@ -1,9 +1,7 @@
 import { LightningElement, wire, track } from 'lwc';
 import { CurrentPageReference } from 'lightning/navigation';
-import {
-    registerListener,
-    fireEvent
-} from 'gpubsub/pubsub';
+import { loadScript } from 'lightning/platformResourceLoader';
+import gpubsubJS from '@salesforce/resourceUrl/globalPubsub'
 
 const columns = [
     { label: 'Message', fieldName: 'message' }
@@ -18,9 +16,24 @@ export default class EventSubscriber extends LightningElement {
 
     connectedCallback() {
         try{
-            registerListener('sendMessage', this.handleMessageReceived, this);
+            loadScript(this, gpubsubJS)
+            .then(() => {
+                console.log('globalPubSub loaded in subscriber');
+                if (globalPubSub) {
+                    globalPubSub.registerListener('sendMessage', this.handleMessageReceived, this);
 
-            fireEvent(this.pageRef, 'getMessage', '');
+                    globalPubSub.fireEvent(this.pageRef, 'getMessage', '');
+                }
+            })
+            .catch((error) => {
+                this.dispatchEvent(
+                    new ShowToastEvent({
+                        title: 'Error loading pubsub',
+                        message: error.message,
+                        variant: 'error'
+                    })
+                );
+            });
         } catch(e) {
             console.error(e);
         }
@@ -34,7 +47,6 @@ export default class EventSubscriber extends LightningElement {
                 payload
             )
         );
-        console.log(`this.messages: ${JSON.stringify(this.messages,null,2)}`);
         this.messages = [...this.messages];
     }
 }

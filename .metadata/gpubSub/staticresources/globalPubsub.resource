@@ -20,7 +20,13 @@
         const obj1 = pageRef1.attributes;
         const obj2 = pageRef2.attributes;
         return Object.keys(obj1).concat(Object.keys(obj2)).every((key) => {
-            return obj1[key] === obj2[key];
+            let test = obj1[key] === obj2[key];
+            if (!test) {
+                console.log(
+                    `${key}:${obj1[key]} != ${key}:${obj2[key]}`
+                );
+            }
+            return test;
         });
     };
 

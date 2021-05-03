@@ -10,37 +10,49 @@
  */
 import { LightningElement, api, wire } from 'lwc';
 import { CurrentPageReference } from 'lightning/navigation';
-import {
-    registerListener,
-    unregisterListener,
-    unregisterAllListeners,
-    fireEvent
-} from 'c/pubsub';
+import { loadScript } from 'lightning/platformResourceLoader';
+import gpubsubJS from '@salesforce/resourceUrl/globalPubsub'
 
 export default class AuraPubsub extends LightningElement {
     @wire(CurrentPageReference) pageRef;
+    pubsub;
 
     connectedCallback() {
-        this.dispatchEvent(new CustomEvent('ready'));
+        loadScript(this, gpubsubJS)
+        .then(() => {
+            console.log('globalPubSub loaded in aurapubsub');
+            if (globalPubSub) {
+                this.dispatchEvent(new CustomEvent('ready'));
+            }
+        })
+        .catch((error) => {
+            this.dispatchEvent(
+                new ShowToastEvent({
+                    title: 'Error loading pubsub',
+                    message: error.message,
+                    variant: 'error'
+                })
+            );
+        });
     }
 
     @api
     registerListener(eventName, callback) {
-        registerListener(eventName, callback, this);
+        globalPubSub && globalPubSub.registerListener(eventName, callback, this);
     }
 
     @api
     unregisterListener(eventName, callback) {
-        unregisterListener(eventName, callback, this);
+        globalPubSub && globalPubSub.unregisterListener(eventName, callback, this);
     }
 
     @api
     unregisterAllListeners() {
-        unregisterAllListeners(this);
+        globalPubSub && globalPubSub.unregisterAllListeners(this);
     }
 
     @api
     fireEvent(eventName, data) {
-        fireEvent(this.pageRef, eventName, data);
+        globalPubSub && globalPubSub.fireEvent(this.pageRef, eventName, data);
     }
 }
