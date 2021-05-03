@@ -1,0 +1,16 @@
+<aura:component implements="forceCommunity:availableForAllPageTypes,flexipage:availableForAllPageTypes" access="global">
+    <aura:registerEvent name="sendMessage" type="c:SendMessage" />
+
+    <c:auraPubSub aura:id="pubsub" onready="{!c.handlePubsubReady}" />
+
+    <lightning:card title="Event Publisher">
+        <p class="slds-p-horizontal_small">
+            <lightning:layout >
+                <lightning:layoutItem>
+                    <lightning:input aura:id="messageInput" name="message" label="Enter the message" value="Hello world!"/>
+                    <lightning:button aura:id="fireEventButton" variant="brand" label="Send message" title="Send message" onclick="{! c.handleSendMessage }" />
+                </lightning:layoutItem>
+            </lightning:layout>
+        </p>
+    </lightning:card>
+</aura:component>
